@@ -5,12 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Employer extends Model
+class Comment extends Model
 {
     use HasFactory;
 
-    public function job()
+    public function post()
     {
-        return $this->hasMany(Job::class); #
+        return $this->belongsTo(Post::class);
     }
 }
