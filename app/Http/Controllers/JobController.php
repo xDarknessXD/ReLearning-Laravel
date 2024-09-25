@@ -3,74 +3,77 @@
 namespace App\Http\Controllers;
 
 use App\Models\Job;
+use App\Models\User;
+use Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class JobController extends Controller
 {
     public function index()
     {
-        $jobs = Job::with('employer')->latest()->simplePaginate(6);
-        return view('jobs.index',[
+        $jobs = Job::with('employer')->latest()->simplePaginate(3);
+
+        return view('jobs.index', [
             'jobs' => $jobs
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-    return view('jobs.create');
-
+        return view('jobs.create');
     }
 
-    public function store(Request $request)
-    {
-        // validation...
-        request()->validate([
-            'title' => ['required', 'min:3'],
-            'salary' => ['required'],
-
-        ]);
-
-        Job::create([
-            'title' => request('title'),
-            'salary' => request('salary'),
-            'employer_id' => 1,
-        ]);
-
-        return redirect('/jobs');
-    }
     public function show(Job $job)
     {
         return view('jobs.show', ['job' => $job]);
     }
 
-    public function edit(Job $job)
+    public function store()
     {
-      return view('jobs.edit', ['job' => $job]);
-    }
-
-    public function update(Request $request, Job $job)
-    {
-        // validate
         request()->validate([
             'title' => ['required', 'min:3'],
-            'salary' => ['required'],
+            'salary' => ['required']
         ]);
 
-        // authorize (On hold....)
+        Job::create([
+            'title' => request('title'),
+            'salary' => request('salary'),
+            'employer_id' => 1
+        ]);
+
+        return redirect('/jobs');
+    }
+
+    public function edit(Job $job)
+    {
+        return view('jobs.edit', ['job' => $job]);
+
+    }
+
+    public function update(Job $job)
+    {
+        Gate::authorize('edit-job', $job);
+
+
+        request()->validate([
+            'title' => ['required', 'min:3'],
+            'salary' => ['required']
+        ]);
 
         $job->update([
             'title' => request('title'),
             'salary' => request('salary'),
         ]);
 
-        return redirect('/jobs/'. $job->id);
+        return redirect('/jobs/' . $job->id);
     }
 
     public function destroy(Job $job)
     {
+        Gate::authorize('edit-job', $job);
+
+
         $job->delete();
 
         return redirect('/jobs');
